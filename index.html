@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cozy Arcade</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        
+        <header class="header">
+            <h1>Cozy Arcade</h1>
+            <p>Select a game to relax.</p>
+        </header>
+
+        <div class="game-grid">
+            
+            <a href="./Snake Game/index.html" class="game-card">
+                <div class="icon-box snake-color">
+                    <i class="fa-solid fa-staff-snake"></i>
+                </div>
+                <div class="card-info">
+                    <h2>Cozy Snake</h2>
+                    <p>Collect treats</p>
+                </div>
+                <div class="play-arrow"><i class="fa-solid fa-play"></i></div>
+            </a>
+
+            <a href="./Flappy Bird/index.html" class="game-card">
+                <div class="icon-box flappy-color">
+                    <i class="fa-solid fa-dove"></i>
+                </div>
+                <div class="card-info">
+                    <h2>Floaty Bird</h2>
+                    <p>Tap to fly</p>
+                </div>
+                <div class="play-arrow"><i class="fa-solid fa-play"></i></div>
+            </a>
+
+            <a href="./Whack-a-Mole/index.html" class="game-card">
+                <div class="icon-box mole-color">
+                    <i class="fa-solid fa-cloud-meatball"></i>
+                </div>
+                <div class="card-info">
+                    <h2>Boop-a-Blob</h2>
+                    <p>Whack 'em gently</p>
+                </div>
+                <div class="play-arrow"><i class="fa-solid fa-play"></i></div>
+            </a>
+
+	<div class="game-card locked" id="runner-card">
+    	<div class="icon-box runner-color">
+       	 <i class="fa-solid fa-cube"></i>
+    	</div>
+    	<div class="card-info">
+        	<h2>Cube Run</h2>
+        <p>In development...</p> </div>
+    	<div class="play-arrow"><i class="fa-solid fa-lock"></i></div> </div>
+
+	</div> <div id="toast">✨ Coming Soon! ✨</div></div>
+            </a>
+
+        </div>
+
+        <footer>
+            <p>Made by Himanshu Rai</p>
+        </footer>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

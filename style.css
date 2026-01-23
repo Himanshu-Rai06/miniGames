@@ -1,0 +1,159 @@
+:root {
+    --bg-color: #FDF6EC;      /* Cream */
+    --card-bg: #FFFFFF;       /* White */
+    --primary: #6B9080;       /* Sage */
+    --text-dark: #354F52;     /* Dark Slate */
+    --text-light: #84A98C;    /* Light Sage */
+    
+    /* Icon Colors */
+    --snake-color: #A4C3B2;
+    --flappy-color: #E6B8A2;
+    --mole-color: #F4D35E;
+    --runner-color: #6B9080;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background-color: var(--bg-color);
+    font-family: 'Quicksand', sans-serif;
+    color: var(--text-dark);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.container {
+    max-width: 800px;
+    width: 100%;
+}
+
+/* Header */
+.header {
+    text-align: center;
+    margin-bottom: 50px;
+    opacity: 0; /* Hidden for animation */
+}
+.header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 5px;
+}
+.header p {
+    color: var(--text-light);
+    font-size: 1.1rem;
+}
+
+/* Grid */
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+/* Cards */
+.game-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    text-decoration: none; /* Remove underline */
+    color: inherit;
+    box-shadow: 0 10px 30px rgba(107, 144, 128, 0.1);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    opacity: 0; /* Hidden for animation */
+    transform: translateY(20px);
+    border: 1px solid transparent;
+}
+
+.game-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(107, 144, 128, 0.2);
+    border-color: rgba(107, 144, 128, 0.2);
+}
+
+/* Icons */
+.icon-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.snake-color { background-color: var(--snake-color); }
+.flappy-color { background-color: var(--flappy-color); }
+.mole-color { background-color: var(--mole-color); }
+.runner-color { background-color: var(--runner-color); }
+
+.card-info { flex-grow: 1; }
+.card-info h2 { font-size: 1.2rem; margin-bottom: 4px; }
+.card-info p { font-size: 0.9rem; color: #999; }
+
+.play-arrow {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    background: #f4f9f6;
+    width: 35px; height: 35px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+}
+
+.game-card:hover .play-arrow {
+    background: var(--primary);
+    color: white;
+}
+
+footer {
+    text-align: center;
+    margin-top: 50px;
+    color: var(--text-light);
+    font-size: 0.8rem;
+    opacity: 0;
+}
+
+/* ... (Your existing CSS) ... */
+
+/* LOCKED CARD STATE */
+.game-card.locked {
+    cursor: not-allowed; /* Shows a 'stop' cursor */
+    opacity: 0.7;        /* Slightly faded */
+    background-color: #fcfcfc;
+}
+
+.game-card.locked:hover {
+    transform: translateY(-2px); /* Moves less than active cards */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.game-card.locked .play-arrow {
+    background: #eee;
+    color: #bbb;
+}
+
+/* COMING SOON TOAST (POPUP) */
+#toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px); /* Start hidden below screen */
+    background-color: var(--text-dark);
+    color: white;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: bold;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 1000;
+    pointer-events: none; /* Let clicks pass through */
+    opacity: 0;
+}

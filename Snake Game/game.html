@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Serpent - Ultra Smooth</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #050505;
+            --grid-line: #1a1a1a;
+            --primary: #00f3ff;
+            --accent: #ff0055;
+            --text: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            touch-action: none; /* Prevent mobile scrolling */
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text);
+            font-family: 'Orbitron', sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.1);
+            border: 2px solid #333;
+            border-radius: 4px;
+        }
+
+        canvas {
+            display: block;
+            background: radial-gradient(circle at center, #0a0a0a 0%, #000000 100%);
+        }
+
+        /* UI Overlays */
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .score-box {
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            box-shadow: 0 0 10px var(--primary);
+            font-size: 1.2rem;
+            text-shadow: 0 0 5px var(--primary);
+        }
+
+        /* Menu Screens */
+        #start-screen, #game-over-screen {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            pointer-events: auto;
+            z-index: 20;
+            transition: opacity 0.3s;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, var(--primary), #bc13fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+        }
+
+        p {
+            color: #aaa;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+            letter-spacing: 1px;
+        }
+
+        button {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            padding: 15px 40px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+        }
+
+        button:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.6);
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Mobile Controls Hint */
+        .controls-hint {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.8rem;
+            opacity: 0.5;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="hud">
+            <div class="score-box">SCORE: <span id="scoreEl">0</span></div>
+            <div class="score-box" style="border-color: var(--accent); box-shadow: 0 0 10px var(--accent);">HI: <span id="highScoreEl">0</span></div>
+        </div>
+
+        <div id="start-screen" class="ui-layer">
+            <h1 class="title-anim">NEON SERPENT</h1>
+            <p>SWIPE or ARROW KEYS to move</p>
+            <button id="startBtn">Initialize</button>
+        </div>
+
+        <div id="game-over-screen" class="ui-layer hidden">
+            <h1 style="color: var(--accent); -webkit-text-fill-color: var(--accent);">SYSTEM FAILURE</h1>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <button id="restartBtn">Reboot</button>
+        </div>
+    </div>
+
+<script>
+/**
+ * CONFIGURATION & CONSTANTS
+ */
+const CANVAS_SIZE = Math.min(window.innerWidth - 20, 600); // Responsive max size
+const GRID_COUNT = 20; // 20x20 Grid
+const TILE_SIZE = Math.floor(CANVAS_SIZE / GRID_COUNT);
+const ACTUAL_SIZE = TILE_SIZE * GRID_COUNT; // Adjust canvas to fit perfect tiles
+
+// Colors
+const COLORS = {
+    snakeHead: '#FFFFFF',
+    snakeBody: '#00F3FF',
+    food: '#FF0055',
+    grid: '#111'
+};
+
+/**
+ * GAME ENGINE
+ */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = ACTUAL_SIZE;
+canvas.height = ACTUAL_SIZE;
+
+// State Variables
+let snake = [];
+let food = { x: 0, y: 0 };
+let direction = { x: 0, y: 0 }; // Current movement
+let nextDirection = { x: 0, y: 0 }; // Buffered input
+let score = 0;
+let highScore = localStorage.getItem('snakeHighScore') || 0;
+let gameRunning = false;
+let lastRenderTime = 0;
+let gameSpeed = 8; // Moves per second
+let particles = []; // Explosion particles
+
+// DOM Elements
+const scoreEl = document.getElementById('scoreEl');
+const highScoreEl = document.getElementById('highScoreEl');
+const finalScoreEl = document.getElementById('finalScore');
+const startScreen = document.getElementById('start-screen');
+const gameOverScreen = document.getElementById('game-over-screen');
+
+// Init High Score
+highScoreEl.innerText = highScore;
+
+/**
+ * INPUT HANDLING (Desktop & Mobile)
+ */
+// Keyboard
+window.addEventListener('keydown', e => {
+    switch(e.key) {
+        case 'ArrowUp': 
+        case 'w':
+        case 'W':
+            if (direction.y === 0) nextDirection = { x: 0, y: -1 }; 
+            break;
+        case 'ArrowDown': 
+        case 's':
+        case 'S':
+            if (direction.y === 0) nextDirection = { x: 0, y: 1 }; 
+            break;
+        case 'ArrowLeft': 
+        case 'a':
+        case 'A':
+            if (direction.x === 0) nextDirection = { x: -1, y: 0 }; 
+            break;
+        case 'ArrowRight': 
+        case 'd':
+        case 'D':
+            if (direction.x === 0) nextDirection = { x: 1, y: 0 }; 
+            break;
+    }
+});
+
+// Touch / Swipe
+let touchStartX = 0;
+let touchStartY = 0;
+
+canvas.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+}, {passive: false});
+
+canvas.addEventListener('touchend', e => {
+    const touchEndX = e.changedTouches[0].screenX;
+    const touchEndY = e.changedTouches[0].screenY;
+    handleSwipe(touchStartX, touchStartY, touchEndX, touchEndY);
+}, {passive: false});
+
+function handleSwipe(sx, sy, ex, ey) {
+    const dx = ex - sx;
+    const dy = ey - sy;
+    
+    if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal
+        if (dx > 0 && direction.x === 0) nextDirection = { x: 1, y: 0 };
+        else if (dx < 0 && direction.x === 0) nextDirection = { x: -1, y: 0 };
+    } else {
+        // Vertical
+        if (dy > 0 && direction.y === 0) nextDirection = { x: 0, y: 1 };
+        else if (dy < 0 && direction.y === 0) nextDirection = { x: 0, y: -1 };
+    }
+}
+
+/**
+ * CORE LOGIC
+ */
+function initGame() {
+    snake = [
+        { x: 10, y: 10 },
+        { x: 10, y: 11 },
+        { x: 10, y: 12 }
+    ];
+    score = 0;
+    gameSpeed = 8;
+    direction = { x: 0, y: -1 };
+    nextDirection = { x: 0, y: -1 };
+    scoreEl.innerText = 0;
+    particles = [];
+    placeFood();
+    gameRunning = true;
+    requestAnimationFrame(gameLoop);
+}
+
+function placeFood() {
+    let valid = false;
+    while (!valid) {
+        food.x = Math.floor(Math.random() * GRID_COUNT);
+        food.y = Math.floor(Math.random() * GRID_COUNT);
+        
+        // Ensure food doesn't spawn on snake
+        valid = !snake.some(segment => segment.x === food.x && segment.y === food.y);
+    }
+}
+
+function update() {
+    direction = nextDirection;
+
+    const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+    // Wall Collision Check
+    if (head.x < 0 || head.x >= GRID_COUNT || head.y < 0 || head.y >= GRID_COUNT) {
+        return gameOver();
+    }
+
+    // Self Collision Check
+    if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+        return gameOver();
+    }
+
+    snake.unshift(head);
+
+    // Food Check
+    if (head.x === food.x && head.y === food.y) {
+        score += 10;
+        scoreEl.innerText = score;
+        
+        // Speed up slightly every 50 points
+        if (score % 50 === 0) gameSpeed += 0.5;
+
+        // Particle explosion
+        createExplosion(head.x, head.y, COLORS.food);
+        
+        // Score Animation using Anime.js
+        anime({
+            targets: '#scoreEl',
+            scale: [1.5, 1],
+            duration: 400,
+            easing: 'easeOutElastic(1, .5)'
+        });
+
+        placeFood();
+    } else {
+        snake.pop();
+    }
+}
+
+function gameOver() {
+    gameRunning = false;
+    
+    // Screen Shake effect
+    document.body.style.transform = "translate(5px, 5px)";
+    setTimeout(() => document.body.style.transform = "translate(-5px, -5px)", 50);
+    setTimeout(() => document.body.style.transform = "translate(0, 0)", 100);
+
+    if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('snakeHighScore', highScore);
+        highScoreEl.innerText = highScore;
+    }
+    
+    finalScoreEl.innerText = score;
+    gameOverScreen.classList.remove('hidden');
+    
+    // Anime.js Entry for Game Over
+    anime({
+        targets: '#game-over-screen h1',
+        translateY: [-50, 0],
+        opacity: [0, 1],
+        duration: 800,
+        easing: 'easeOutExpo'
+    });
+}
+
+/**
+ * RENDERER & VISUALS
+ */
+function createExplosion(x, y, color) {
+    const pixelX = x * TILE_SIZE + TILE_SIZE/2;
+    const pixelY = y * TILE_SIZE + TILE_SIZE/2;
+    
+    for (let i = 0; i < 12; i++) {
+        particles.push({
+            x: pixelX,
+            y: pixelY,
+            vx: (Math.random() - 0.5) * 10,
+            vy: (Math.random() - 0.5) * 10,
+            life: 1.0,
+            color: color
+        });
+    }
+}
+
+function draw() {
+    // Clear Canvas
+    ctx.fillStyle = 'rgba(0, 0, 0, 1)'; // High opacity to clear trails
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Grid (Subtle)
+    ctx.strokeStyle = '#111';
+    ctx.lineWidth = 1;
+    for(let i=0; i<=GRID_COUNT; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * TILE_SIZE, 0);
+        ctx.lineTo(i * TILE_SIZE, canvas.height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, i * TILE_SIZE);
+        ctx.lineTo(canvas.width, i * TILE_SIZE);
+        ctx.stroke();
+    }
+
+    // Draw Food
+    const foodX = food.x * TILE_SIZE + TILE_SIZE/2;
+    const foodY = food.y * TILE_SIZE + TILE_SIZE/2;
+    
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = COLORS.food;
+    ctx.fillStyle = COLORS.food;
+    ctx.beginPath();
+    ctx.arc(foodX, foodY, TILE_SIZE/2 - 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Reset Shadow for non-glow elements
+    ctx.shadowBlur = 0;
+
+    // Draw Snake
+    snake.forEach((segment, index) => {
+        const segX = segment.x * TILE_SIZE;
+        const segY = segment.y * TILE_SIZE;
+        
+        // Head Glow
+        if (index === 0) {
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = COLORS.snakeBody;
+            ctx.fillStyle = COLORS.snakeHead;
+        } else {
+            ctx.shadowBlur = 0;
+            // Gradient for body
+            ctx.fillStyle = COLORS.snakeBody; 
+            // Optional: Fade body color towards tail
+            ctx.globalAlpha = 1 - (index / (snake.length + 5));
+        }
+
+        ctx.fillRect(segX + 1, segY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+        ctx.globalAlpha = 1.0;
+    });
+
+    // Draw Particles
+    particles.forEach((p, index) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.05;
+        
+        if (p.life <= 0) {
+            particles.splice(index, 1);
+        } else {
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, 4, 4);
+            ctx.globalAlpha = 1.0;
+        }
+    });
+}
+
+/**
+ * GAME LOOP
+ */
+function gameLoop(currentTime) {
+    if (!gameRunning) return;
+
+    window.requestAnimationFrame(gameLoop);
+
+    const secondsSinceLastRender = (currentTime - lastRenderTime) / 1000;
+    
+    // Logic Update (controlled by gameSpeed)
+    if (secondsSinceLastRender < 1 / gameSpeed) return;
+    
+    lastRenderTime = currentTime;
+    update();
+    draw();
+}
+
+/**
+ * UI INTERACTION
+ */
+// Initial Animation
+anime({
+    targets: '.title-anim',
+    translateY: [-50, 0],
+    opacity: [0, 1],
+    duration: 1500,
+    easing: 'easeOutElastic(1, .6)'
+});
+
+document.getElementById('startBtn').addEventListener('click', () => {
+    startScreen.classList.add('hidden');
+    // Ensure canvas is drawn once before loop starts to prevent flicker
+    draw();
+    initGame();
+});
+
+document.getElementById('restartBtn').addEventListener('click', () => {
+    gameOverScreen.classList.add('hidden');
+    initGame();
+});
+
+</script>
+</body>
+</html>

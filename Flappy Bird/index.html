@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Floaty Bird - Cozy Edition</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a href="../index.html" style="
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: white;
+    padding: 10px 20px;
+    border-radius: 30px;
+    text-decoration: none;
+    color: #6B9080;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    z-index: 9999;
+">
+    ⬅ Menu
+</a>
+
+    <div id="app-container">
+        
+        <div class="hud">
+            <div id="scoreEl">0</div>
+        </div>
+
+        <div class="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+
+        <div id="start-screen" class="overlay">
+            <div class="card">
+                <h1 class="title">Floaty</h1>
+                <p class="subtitle">Tap, Click, or Spacebar</p>
+                <button id="startBtn" class="primary-btn">Start Floating</button>
+            </div>
+        </div>
+
+        <div id="game-over-screen" class="overlay hidden">
+            <div class="card">
+                <h2>Ouch!</h2>
+                <div class="stats">
+                    <p>Score: <span id="finalScore">0</span></p>
+                    <p class="highlight">Best: <span id="bestScore">0</span></p>
+                </div>
+                <button id="restartBtn" class="primary-btn">Float Again</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
