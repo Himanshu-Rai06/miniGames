@@ -555,10 +555,10 @@ body {
 }
 
 .is-shifting-left::before {
-    animation: trail-left 0.2s ease-out;
+    animation: trail-left 0.5s ease-out;
 }
 .is-shifting-right::before {
-    animation: trail-right 0.2s ease-out;
+    animation: trail-right 0.5s ease-out;
 }
 
 @keyframes trail-left {
@@ -571,10 +571,6 @@ body {
 }
 
 /* --- 2. SUPER SAIYAN BOOST AURA --- */
-/* Violent shake on the cube */
-.is-boosting .cube {
-    animation: saiyan-shake 0.1s infinite;
-}
 
 /* Turn the cube blinding yellow/orange with massive glowing shadows */
 .is-boosting .cube .face {
@@ -594,13 +590,42 @@ body {
     animation: saiyan-pulse 0.15s infinite alternate;
 }
 
-@keyframes saiyan-shake {
-    0% { transform: translate(1px, 1px); }
-    50% { transform: translate(-1px, -2px); }
-    100% { transform: translate(-2px, 1px); }
-}
-
 @keyframes saiyan-pulse {
     0% { transform: scale(1) translateZ(10px); opacity: 0.7; }
     100% { transform: scale(1.4) translateZ(30px); opacity: 1; }
+}
+
+
+/* =========================================
+   MOBILE GAME OPTIMIZATION & LOCKDOWN
+   ========================================= */
+
+/* 1. Prevent native browser gestures and highlighting */
+body, html {
+    overscroll-behavior: none; /* Stops the bouncy "pull-to-refresh" effect */
+    touch-action: none; /* Disables zoom, pan, and swipe-to-navigate gestures */
+    -webkit-user-select: none; /* Prevents text highlighting on iOS Safari */
+    user-select: none; /* Prevents text highlighting on Android/Desktop */
+    -webkit-touch-callout: none; /* Disables the long-press popup menu (e.g., "Save Image") */
+    overflow: hidden; /* Locks the screen in place */
+}
+
+/* 2. Use Dynamic Viewport Height for the game container */
+#game-frame {
+    /* Mobile browsers have address bars that hide/show, messing up '100vh'. 
+       '100dvh' (Dynamic Viewport Height) fixes this perfectly. */
+    height: 100vh; /* Fallback for older browsers */
+    height: 100dvh; 
+    width: 100%;
+    overflow: hidden;
+    position: relative; 
+}
+
+/* DELETE THIS ENTIRE BLOCK */
+.obstacle, 
+#playerGroup, 
+#cubeMesh {
+    will-change: transform, top, left; 
+    transform: translateZ(0); 
+    backface-visibility: hidden; 
 }
