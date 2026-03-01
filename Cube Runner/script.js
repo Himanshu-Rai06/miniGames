@@ -49,72 +49,6 @@ let boostLevel = 0;
 let isBoosting = false;
 let lastJumpTime = 0;    
 
-
-// Add these variables to the top of your script
-let touchStartX = 0;
-let touchStartY = 0;
-const swipeThreshold = 30; // How many pixels they need to swipe to trigger a move
-
-const gameFrame = document.getElementById('game-frame');
-
-// 1. Record where the finger starts
-gameFrame.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-}, { passive: false });
-
-// 2. Track the finger as it moves
-gameFrame.addEventListener('touchmove', (e) => {
-    e.preventDefault(); // Extra protection against browser scrolling
-    
-    // If we don't have a starting point, ignore it
-    if (!touchStartX || !touchStartY) return;
-
-    let touchCurrentX = e.touches[0].clientX;
-    let touchCurrentY = e.touches[0].clientY;
-
-    let diffX = touchStartX - touchCurrentX;
-    let diffY = touchStartY - touchCurrentY;
-
-    // Check if the swipe is mostly horizontal or vertical
-    if (Math.abs(diffX) > Math.abs(diffY)) {
-        // --- HORIZONTAL SWIPE (Lanes) ---
-        if (Math.abs(diffX) > swipeThreshold) {
-            if (diffX > 0) {
-                // Swiped Left
-                // REPLACE THIS with your code to move the cube left
-                console.log("Move Left!"); 
-            } else {
-                // Swiped Right
-                // REPLACE THIS with your code to move the cube right
-                console.log("Move Right!");
-            }
-            
-            // 💥 CRUCIAL: Reset the start point so it doesn't keep triggering
-            touchStartX = 0; 
-            touchStartY = 0;
-        }
-    } else {
-        // --- VERTICAL SWIPE (Jump) ---
-        if (Math.abs(diffY) > swipeThreshold) {
-            if (diffY > 0) {
-                // Swiped Up
-                // REPLACE THIS with your jump code
-                console.log("Jump!");
-            }
-            
-            touchStartX = 0;
-            touchStartY = 0;
-        }
-    }
-}, { passive: false });
-
-// 3. Clear the touch data when the finger is lifted
-gameFrame.addEventListener('touchend', () => {
-    touchStartX = 0;
-    touchStartY = 0;
-});
-
 // --- DESKTOP CONTROLS ---
 document.addEventListener('keydown', (e) => {
     if(!gameRunning) return;
@@ -137,54 +71,73 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// --- MOBILE CONTROLS (SWIPE & DOUBLE TAP) ---
+// --- UNIFIED MOBILE CONTROLS (SWIPE & DOUBLE TAP) ---
 let touchStartX = 0;
 let touchStartY = 0;
 let lastTapTime = 0;
+const swipeThreshold = 30;
 
-document.addEventListener('touchstart', e => {
+frameEl.addEventListener('touchstart', (e) => {
     if(!gameRunning) return;
-    touchStartX = e.changedTouches[0].screenX;
-    touchStartY = e.changedTouches[0].screenY;
-}, {passive: true});
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}, { passive: false });
 
-document.addEventListener('touchend', e => {
+frameEl.addEventListener('touchmove', (e) => {
     if(!gameRunning) return;
-    let touchEndX = e.changedTouches[0].screenX;
-    let touchEndY = e.changedTouches[0].screenY;
+    e.preventDefault(); // Extra protection against browser scrolling
     
-    let diffX = touchEndX - touchStartX;
-    let diffY = touchEndY - touchStartY;
+    if (!touchStartX || !touchStartY) return;
 
-    // Determine if it was a swipe or a tap
-    if (Math.abs(diffX) > 30 || Math.abs(diffY) > 30) {
-        // It's a swipe!
+    let touchCurrentX = e.touches[0].clientX;
+    let touchCurrentY = e.touches[0].clientY;
+
+    let diffX = touchStartX - touchCurrentX;
+    let diffY = touchStartY - touchCurrentY;
+
+    if (Math.abs(diffX) > swipeThreshold || Math.abs(diffY) > swipeThreshold) {
         if (Math.abs(diffX) > Math.abs(diffY)) {
             // Horizontal swipe
             if (diffX > 0) {
-                moveLane(1);
-                playerGroup.classList.add('is-shifting-right');
-                setTimeout(() => playerGroup.classList.remove('is-shifting-right'), 200);
-            } else {
-                moveLane(-1);
+                moveLane(-1); // Swiped Left
                 playerGroup.classList.add('is-shifting-left');
                 setTimeout(() => playerGroup.classList.remove('is-shifting-left'), 200);
+            } else {
+                moveLane(1);  // Swiped Right
+                playerGroup.classList.add('is-shifting-right');
+                setTimeout(() => playerGroup.classList.remove('is-shifting-right'), 200);
             }
         } else {
-            // Vertical swipe (Up or Down = Jump)
-            handleJumpInput();
+            // Vertical swipe
+            if (diffY > 0) { // Swiped Up
+                handleJumpInput();
+            }
         }
-    } else {
-        // It's a tap! Check for double tap.
+        // Reset so it doesn't trigger multiple times in one swipe
+        touchStartX = 0; 
+        touchStartY = 0;
+    }
+}, { passive: false });
+
+frameEl.addEventListener('touchend', (e) => {
+    if(!gameRunning) return;
+    
+    // If touchStartX is still set, it means it was a tap (no swipe occurred)
+    if (touchStartX !== 0 && touchStartY !== 0) {
         let currentTime = new Date().getTime();
         let tapLength = currentTime - lastTapTime;
+        
         if (tapLength < 300 && tapLength > 0) {
             // Double tap registered
             if (boostLevel >= 100 && !isBoosting) activateBoost();
         }
         lastTapTime = currentTime;
     }
+    
+    touchStartX = 0;
+    touchStartY = 0;
 });
+
 
 function moveLane(dir) {
     const nextLane = currentLane + dir;
@@ -231,23 +184,19 @@ function jump() {
 }
 
 function activateBoost() {
-    // 1. ACTUALLY UPDATE GAME LOGIC VARIABLES
     isBoosting = true;
-    speed = BOOST_SPEED; // Speed surge!
-    boostLevel = 0; // Empty the logic meter
+    speed = BOOST_SPEED;
+    boostLevel = 0;
 
-    // 2. Turn on the Super Saiyan visual effects
     playerGroup.classList.add('is-boosting');
     boostIcon.classList.add('is-boosting-ui');
     
-    // 3. Set height to 0% and instantly apply the 3-second drain transition
     boostFill.style.height = '0%';
     boostFill.classList.add('is-draining');
 
-    // 4. End the boost after 3 seconds
     setTimeout(() => {
         isBoosting = false;
-        speed = BASE_SPEED + (distance / 700); // Return to normal scaling speed
+        speed = BASE_SPEED + (distance / 700);
         playerGroup.classList.remove('is-boosting');
         boostIcon.classList.remove('is-boosting-ui');
         boostFill.classList.remove('is-draining'); 
@@ -269,7 +218,6 @@ function startGame() {
     playerGroup.style.left = '120px'; 
     playerGroup.style.transform = 'translateZ(0px)';
     cubeMesh.style.transform = 'translateZ(30px) rotateX(0deg) rotateZ(0deg)';
-    cubeMesh.style.boxShadow = "none";
 
     updateBoostUI();
     document.getElementById('start-screen').classList.add('hidden');
@@ -337,6 +285,7 @@ function gameLoop() {
             const obType = ob.dataset.type;
             
             let isHit = false;
+            // Ensure wide obstacles block two lanes
             if (obType === 'wide' && (currentLane === obLane || currentLane === obLane + 1)) {
                 isHit = true;
             } else if (currentLane === obLane) {
@@ -347,7 +296,7 @@ function gameLoop() {
                 if (isBoosting) {
                     smashObstacle(ob);
                     obstacles.splice(i, 1);
-                    continue; // IMPORTANT: Skip rest of loop so it doesn't process deleted obstacle
+                    continue; // Skip the rest of the loop for this obstacle
                 } else if (!isJumping) {
                     gameOver();
                 }
