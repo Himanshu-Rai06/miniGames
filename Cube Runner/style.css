@@ -625,7 +625,9 @@ body, html {
 .obstacle, 
 #playerGroup, 
 #cubeMesh {
-    will-change: transform, top, left; 
-    transform: translateZ(0); 
+    will-change: transform; 
+    transform: translate3d(0, 0, 0); /* The ultimate GPU trigger */
     backface-visibility: hidden; 
+    perspective: 1000px; /* Helps smooth out 3D glitches on Safari */
 }
+
