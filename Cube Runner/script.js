@@ -14,7 +14,7 @@ const LANE_WIDTH = 120;
 const TRACK_LENGTH = 1500; 
 const PLAYER_Y = 1260; 
 
-const BASE_SPEED = 12;
+const BASE_SPEED = 8;
 const BOOST_SPEED = 30;
 
 const frameEl = document.getElementById('game-frame');
@@ -218,7 +218,7 @@ function gameLoop() {
 
     distance += speed * 0.05;
     distEl.innerText = Math.floor(distance) + "m";
-    if (!isBoosting) speed = BASE_SPEED + (distance / 600); 
+    if (!isBoosting) speed = BASE_SPEED + (distance / 300); 
 
     // BOOST FILL LOGIC
     if (!isBoosting && boostLevel < 100) {
@@ -228,7 +228,7 @@ function gameLoop() {
     }
 
     // THEME CYCLING
-    if (Math.floor(distance) - lastThemeDistance >= 500) {
+    if (Math.floor(distance) - lastThemeDistance >= 550) {
         lastThemeDistance = Math.floor(distance);
         let randomIndex = Math.floor(Math.random() * themes.length);
         currentTheme = themes[randomIndex];
@@ -406,4 +406,5 @@ function gameOver() {
 }
 
 document.getElementById('startBtn').addEventListener('click', startGame);
+
 document.getElementById('restartBtn').addEventListener('click', startGame);
