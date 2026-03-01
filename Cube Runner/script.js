@@ -49,6 +49,72 @@ let boostLevel = 0;
 let isBoosting = false;
 let lastJumpTime = 0;    
 
+
+// Add these variables to the top of your script
+let touchStartX = 0;
+let touchStartY = 0;
+const swipeThreshold = 30; // How many pixels they need to swipe to trigger a move
+
+const gameFrame = document.getElementById('game-frame');
+
+// 1. Record where the finger starts
+gameFrame.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}, { passive: false });
+
+// 2. Track the finger as it moves
+gameFrame.addEventListener('touchmove', (e) => {
+    e.preventDefault(); // Extra protection against browser scrolling
+    
+    // If we don't have a starting point, ignore it
+    if (!touchStartX || !touchStartY) return;
+
+    let touchCurrentX = e.touches[0].clientX;
+    let touchCurrentY = e.touches[0].clientY;
+
+    let diffX = touchStartX - touchCurrentX;
+    let diffY = touchStartY - touchCurrentY;
+
+    // Check if the swipe is mostly horizontal or vertical
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+        // --- HORIZONTAL SWIPE (Lanes) ---
+        if (Math.abs(diffX) > swipeThreshold) {
+            if (diffX > 0) {
+                // Swiped Left
+                // REPLACE THIS with your code to move the cube left
+                console.log("Move Left!"); 
+            } else {
+                // Swiped Right
+                // REPLACE THIS with your code to move the cube right
+                console.log("Move Right!");
+            }
+            
+            // 💥 CRUCIAL: Reset the start point so it doesn't keep triggering
+            touchStartX = 0; 
+            touchStartY = 0;
+        }
+    } else {
+        // --- VERTICAL SWIPE (Jump) ---
+        if (Math.abs(diffY) > swipeThreshold) {
+            if (diffY > 0) {
+                // Swiped Up
+                // REPLACE THIS with your jump code
+                console.log("Jump!");
+            }
+            
+            touchStartX = 0;
+            touchStartY = 0;
+        }
+    }
+}, { passive: false });
+
+// 3. Clear the touch data when the finger is lifted
+gameFrame.addEventListener('touchend', () => {
+    touchStartX = 0;
+    touchStartY = 0;
+});
+
 // --- DESKTOP CONTROLS ---
 document.addEventListener('keydown', (e) => {
     if(!gameRunning) return;
@@ -406,5 +472,4 @@ function gameOver() {
 }
 
 document.getElementById('startBtn').addEventListener('click', startGame);
-
 document.getElementById('restartBtn').addEventListener('click', startGame);
