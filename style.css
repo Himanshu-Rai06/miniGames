@@ -12,6 +12,8 @@
     --runner-color: #6B9080;
 }
 
+
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
@@ -159,3 +161,4 @@ footer {
     pointer-events: none; /* Let clicks pass through */
     opacity: 0;
 }
+
