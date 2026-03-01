@@ -33,14 +33,16 @@ body {
 .header {
     text-align: center;
     margin-bottom: 50px;
-    opacity: 0; /* Hidden for animation */
+    opacity: 0; /* Hidden for Anime.js animation */
 }
+
 .header h1 {
     font-size: 3rem;
     font-weight: 700;
     color: var(--primary);
     margin-bottom: 5px;
 }
+
 .header p {
     color: var(--text-light);
     font-size: 1.1rem;
@@ -65,7 +67,7 @@ body {
     color: inherit;
     box-shadow: 0 10px 30px rgba(107, 144, 128, 0.1);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    opacity: 0; /* Hidden for animation */
+    opacity: 0; /* Hidden for Anime.js animation */
     transform: translateY(20px);
     border: 1px solid transparent;
 }
@@ -105,23 +107,13 @@ body {
     width: 35px; height: 35px;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    transition: background 0.2s;
+    transition: background 0.2s, color 0.2s;
 }
 
 .game-card:hover .play-arrow {
     background: var(--primary);
     color: white;
 }
-
-footer {
-    text-align: center;
-    margin-top: 50px;
-    color: var(--text-light);
-    font-size: 0.8rem;
-    opacity: 0;
-}
-
-/* ... (Your existing CSS) ... */
 
 /* LOCKED CARD STATE */
 .game-card.locked {
@@ -133,11 +125,21 @@ footer {
 .game-card.locked:hover {
     transform: translateY(-2px); /* Moves less than active cards */
     box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    border-color: transparent;
 }
 
-.game-card.locked .play-arrow {
+.game-card.locked .play-arrow,
+.game-card.locked:hover .play-arrow {
     background: #eee;
     color: #bbb;
+}
+
+footer {
+    text-align: center;
+    margin-top: 50px;
+    color: var(--text-light);
+    font-size: 0.8rem;
+    opacity: 0; /* Hidden for Anime.js animation */
 }
 
 /* COMING SOON TOAST (POPUP) */
